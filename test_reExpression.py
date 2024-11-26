@@ -22,32 +22,34 @@ class TestReEmail(unittest.TestCase):
 class TestFileEmailSearch(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open, read_data="Email: test@example.com\nInvalid: test.com")
     def test_find_emails_in_file(self, mock_file):
-        result = find_emails_in_file("dummy_file.txt")
+        result = find_emails_in_file("emails.txt")
         self.assertEqual(result, ["test@example.com"])
 
     @patch("builtins.open", side_effect=FileNotFoundError)
     def test_find_emails_in_file_not_found(self, mock_file):
-        with self.assertRaises(FileNotFoundError):
-            find_emails_in_file("non_existent_file.txt")
-
+        with patch("builtins.print") as mock_print:
+            find_emails_in_file("non_emails.txt")
+            mock_print.assert_called_with(
+                "Error: The file was not found. Make sure that the path is specified correctly.")
 
 class TestWebpageEmailSearch(unittest.TestCase):
     @patch("requests.get")
     def test_find_emails_on_webpage(self, mock_get):
         mock_get.return_value.status_code = 200
         mock_get.return_value.text = "Contact: email@example.com"
+        mock_get.return_value.text = "66365c10274f4724819f92df56571b8b@sentry.litres.io"
 
         with patch("builtins.print") as mock_print:
-            find_emails_on_webpage("http://example.com")
-            mock_print.assert_called_with("Found e-mails on the page:", ["email@example.com"])
+            find_emails_on_webpage("https://www.litres.ru/author/albert-eynshteyn/about/")
+            mock_print.assert_called_with("Found e-mails on the page:", ["66365c10274f4724819f92df56571b8b@sentry.litres.io"])
 
     @patch("requests.get")
     def test_find_emails_on_webpage_error(self, mock_get):
         mock_get.side_effect = requests.RequestException("Network error")
 
         with patch("builtins.print") as mock_print:
-            find_emails_on_webpage("http://example.com")
-            mock_print.assert_called_with("Error loading the page:", "Network error")
+            find_emails_on_webpage("https://www.litres.ru/author/albert-eynshteyn/about/")
+            mock_print.assert_called_with("An unexpected error occurred: Network error")
 
 
 if __name__ == "__main__":

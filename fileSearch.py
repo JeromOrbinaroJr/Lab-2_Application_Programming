@@ -8,6 +8,7 @@ def find_emails_in_file(filepath):
             content = file.read()
             emails = find_emails_in_text(content)
             if emails:
+                return emails
                 print("Found e-mails in the file: ", emails)
             else:
                 print("No e-mail was found in the file.")
